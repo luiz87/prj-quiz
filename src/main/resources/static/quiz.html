@@ -91,47 +91,42 @@
                 placar.erros += 1;
             }
         }
-
-        let lsPergunta = [
-            {
-                pergunta: "Qual foi o ultimo ano que o BR ganhou a copa?",
-                respostas: ["1970", "2002", "1962", "1994"],
-                correta: 1
-            }
-            ,
-            {
-                pergunta: "Qual o nome do último presidente dos Estados Unidos?",
-                respostas: ["George Bush", "Donald Trump", "Joe Biden", "Dwight Eisenhower"],
-                correta: 2
-            },
-            {
-                pergunta: "Qual é o maior planeta do sistema solar?",
-                respostas: ["Júpiter", "Saturno", "Urano", "Netuno"],
-                correta: 0
-            }
-        ];
-        let baseQuiz = localStorage.getItem('baseQuiz');
-        if (baseQuiz == null) {
-            localStorage.setItem('baseQuiz', JSON.stringify(lsPergunta));
-        } else {
-            lsPergunta = JSON.parse(baseQuiz);
-        }
-        let quiz = {};
-        embaralharPerguntas();
-        function carregarQuiz(nPergunta) {
-            embaralharRespotas(nPergunta);
-            quiz = lsPergunta[nPergunta];
-            document.querySelector('h2').innerHTML = quiz.pergunta;
-            for (let i = 0; i < 4; i++) {
-                document.querySelectorAll('h3')[i].style.backgroundColor = '#cccccc';
-                document.querySelectorAll('h3')[i].innerHTML = quiz.respostas[i];
-                let x = i;
-                document.querySelectorAll('h3')[i].addEventListener(
-                    'click', () => { verificarResposta(x) });
-            }
-        }
+        
+        
+        let lsPergunta = [];
         let quizAtual = 0;
-        carregarQuiz(quizAtual);
+        let quiz = {};
+        xhttp = new XMLHttpRequest();
+
+        function buscarQuiz() {
+            xhttp.open("GET", "/api/quiz/");
+            xhttp.send();
+            xhttp.onload = function () {
+                iniciarQuiz(this.responseText);
+            };
+        }
+        buscarQuiz();
+
+        function iniciarQuiz(apiQuiz) {
+            
+            lsPergunta = JSON.parse(apiQuiz);
+            embaralharPerguntas();
+            carregarQuiz(quizAtual);
+        }
+
+        function carregarQuiz(nPergunta) {
+                embaralharRespotas(nPergunta);
+                quiz = lsPergunta[nPergunta];
+                document.querySelector('h2').innerHTML = quiz.pergunta;
+                for (let i = 0; i < 4; i++) {
+                    document.querySelectorAll('h3')[i].style.backgroundColor = '#cccccc';
+                    document.querySelectorAll('h3')[i].innerHTML = quiz.respostas[i];
+                    let x = i;
+                    document.querySelectorAll('h3')[i].addEventListener(
+                        'click', () => { verificarResposta(x) });
+                }
+            }
+
         function next() {
             // console.log(quizAtual);
             // console.log(lsPergunta.length-1);
@@ -191,8 +186,8 @@
             console.log(opcaoCorreta);
             while (lsRespostas.length > 0) {
                 let numSorteado = Math.trunc(Math.random() * lsRespostas.length);
-                listaTemporaria[cont] = lsRespostas.splice(numSorteado,1)[0];
-                if(opcaoCorreta == listaTemporaria[cont]){
+                listaTemporaria[cont] = lsRespostas.splice(numSorteado, 1)[0];
+                if (opcaoCorreta == listaTemporaria[cont]) {
                     quiz.correta = cont;
                 }
                 cont++;
