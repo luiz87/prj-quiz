@@ -73,6 +73,7 @@
                 </div>
             </div>
             <input type="hidden" id="id" value="">
+            <input type="hidden" id="index" value="">
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" onclick="gravar()" class="btn btn-default">Gravar</button>
@@ -99,10 +100,33 @@
     </div>
     <script>
         let baseQuiz = "";
-        atualizarTabela();
-        function atualizarTabela() {
-            baseQuiz = localStorage.getItem("baseQuiz");
-            baseQuiz = JSON.parse(baseQuiz);
+        xhttp = new XMLHttpRequest();
+        function buscarQuiz() {
+            xhttp.open("GET", "/api/quiz/");
+            xhttp.send();
+            xhttp.onload = function () {
+                atualizarTabela(this.responseText);
+            };
+        }
+        buscarQuiz();
+
+        function gravarQuiz(quiz) {
+            
+            // alert(JSON.stringify(quiz));
+            
+            xhttp.open("PUT", "/api/quiz/");
+            xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhttp.send(JSON.stringify(quiz));
+            xhttp.onload = function () {
+                limparForm();
+                buscarQuiz();
+            };
+        }
+
+        function atualizarTabela(quizApi) {
+            // baseQuiz = localStorage.getItem("baseQuiz");
+            baseQuiz = JSON.parse(quizApi);
+            console.log(baseQuiz);
             let corpoTabela = "";
             for (i in baseQuiz) {
                 let pergunta = baseQuiz[i].pergunta;
@@ -113,10 +137,11 @@
         }
 
 
-        function editar(id) {
-            let quiz = baseQuiz[id];
+        function editar(index) {
+            let quiz = baseQuiz[index];
             console.log(quiz);
-            document.getElementById("id").value = id;
+            document.getElementById("index").value = index;
+            document.getElementById("id").value = quiz.id;
             document.getElementById("pergunta").value = quiz.pergunta;
             document.getElementById("opcao01").value = quiz.respostas[0];
             document.getElementById("opcao02").value = quiz.respostas[1];
@@ -157,6 +182,9 @@
                 if (i == 9) {
                     id = lista[i].value;
                 }
+                if (i == 10) {
+                    index = lista[i].value;
+                }
             }
             let msg = "";
             // validar se o formulário/objeto quiz esta devidamente preenchido
@@ -188,16 +216,17 @@
                 alerta.classList.add("alert-success");
             }
 
-            // console.log(quiz);
-            if (id == "") {
-                baseQuiz.push(quiz);
-            } else {
-                baseQuiz[id] = quiz;
-            }
+            
 
-            localStorage.setItem('baseQuiz', JSON.stringify(baseQuiz));
-            limparForm();
-            atualizarTabela();
+            // console.log(quiz);
+            if (id != "") {
+                quiz.id = id;
+            } 
+            console.log(quiz);
+            gravarQuiz(quiz);
+            // localStorage.setItem('baseQuiz', JSON.stringify(baseQuiz));
+            // limparForm();
+            // buscarQuiz();
         }
 
         function verificaOpcaoRepetida(quiz) {
@@ -246,7 +275,7 @@
                 baseQuiz.splice(id, 1);
                 localStorage.setItem('baseQuiz', JSON.stringify(baseQuiz));
                 limparForm();
-                atualizarTabela();
+                buscarQuiz();
             }
 
         }
